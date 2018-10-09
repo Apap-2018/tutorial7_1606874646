@@ -1,0 +1,14 @@
+Perbedaan th:inlcude dengan th:replace
+
+-Dalam th:include:
+<div th: include = "..."> konten di sini </ div>
+fragmen akan ditempatkan di dalam tag <div>.
+
+Namun ketika digunakan replace:
+
+<div th: replace = "..."> konten di sini </ div>
+<div> akan digantikan oleh konten.
+ 
+hal ini karena Thymeleaf dapat memasukkan bagian-bagian dari halaman lain 
+sebagai fragmen (sedangkan JSP hanya menyertakan halaman lengkap)
+menggunakan th: include (akan menyertakan isi fragmen ke dalam tag host-nya) atau th: replace (akan menggantikan tag host dengan fragmen).
