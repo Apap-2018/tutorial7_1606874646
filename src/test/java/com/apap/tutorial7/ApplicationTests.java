@@ -1,4 +1,4 @@
-package com.apap.tutorial5;
+package com.apap.tutorial7;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

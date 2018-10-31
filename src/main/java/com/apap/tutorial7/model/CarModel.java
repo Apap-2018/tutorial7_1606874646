@@ -1,15 +1,17 @@
-package com.apap.tutorial5.model;
+package com.apap.tutorial7.model;
 
 import java.io.Serializable;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "car")
+
 public class CarModel implements Serializable{
 	public long getId() {
 		return id;
@@ -84,6 +86,6 @@ public class CarModel implements Serializable{
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "dealer_id", referencedColumnName = "id", nullable = false)
 	@OnDelete(action = OnDeleteAction.NO_ACTION)
-	@JsonIgnore
+
 	private DealerModel dealer;
 }

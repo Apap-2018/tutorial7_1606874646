@@ -1,24 +1,30 @@
-package com.apap.tutorial5.controller;
+package com.apap.tutorial7.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.context.annotation.Bean;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
-import com.apap.tutorial5.model.CarModel;
-import com.apap.tutorial5.model.DealerModel;
-import com.apap.tutorial5.repository.DealerDb;
-import com.apap.tutorial5.service.CarService;
-import com.apap.tutorial5.service.DealerService;
+import com.apap.tutorial7.model.DealerModel;
+import com.apap.tutorial7.rest.DealerDetail;
+import com.apap.tutorial7.rest.Setting;
+import com.apap.tutorial7.service.CarService;
+import com.apap.tutorial7.service.DealerService;
 
-@Controller
+@RestController
+@RequestMapping("/dealer")
 public class DealerController {
 	@Autowired
 	private DealerService dealerService;
@@ -36,33 +42,19 @@ public class DealerController {
 		return "addDealer";
 	}
 	
-	@RequestMapping(value = "/dealer/add", method = RequestMethod.POST)
-	private String addDealerSubmit(@ModelAttribute DealerModel dealer) {
-		dealerService.addDealer(dealer);
-		return "add";
+	@PostMapping(value = "/add")
+	private DealerModel addDealerSubmit(@RequestBody DealerModel dealer) {
+		return dealerService.addDealer(dealer);
 	}
-	@RequestMapping(value = "/dealer/delete", method = RequestMethod.GET)
+	@DeleteMapping(value = "/delete")
 	private String deleteDealer(@RequestParam("dealerId") long id, Model model) {
-		Optional<DealerModel> dealer = dealerService.getDealerDetailById(id);
-		if (dealer.isPresent()) {
-			dealerService.deleteDealer(dealer.get());
-			return "delete";
-		}
-		return "error";
+		DealerModel dealer = dealerService.getDealerDetailById(id).get();
+		dealerService.deleteDealer(dealer);
+		return "delete";
 }
-	@RequestMapping(value = "dealer/view", method = RequestMethod.GET)
-	private String viewDealer(@RequestParam ("dealerId") long dealerId, Model model) {
-		DealerModel dealer = dealerService.getDealerDetailById(dealerId).get();
-		long addCarId = dealerId;
-		
-		List<CarModel> archiveListCar = carService.sortByPriceDesc(dealerId);
-//		model.addAttribute("dealer", dealer);
-//		model.addAttribute("id", addCarId);
-//		model.addAttribute("listCar", carService.sortByPriceDesc(dealerId));
-		dealer.setListCar(archiveListCar);
-		model.addAttribute("dealer", dealer);
-		model.addAttribute("id", addCarId);
-		return "view-dealer";
+	@GetMapping(value = "/{dealerId}")
+	private DealerModel viewDealer(@PathVariable ("dealerId") long dealerId, Model model) {
+		return dealerService.getDealerDetailById(dealerId).get();
 }
 	@RequestMapping(value = "/dealer/update/{id}", method = RequestMethod.GET)
 	private String updateDealer(@PathVariable(value = "id") long id, Model model) {
@@ -71,20 +63,43 @@ public class DealerController {
 		return "updateDealer";
 	}
 	
-	@RequestMapping(value = "/dealer/update/{id}", method = RequestMethod.POST)
-	private String updateDealerSubmit(@PathVariable (value = "id") long id, @ModelAttribute Optional<DealerModel> dealer) {
-		if(dealer.isPresent()) {
-			dealerService.updateDealer(id, dealer);
-			return "update";
+	@PutMapping(value = "/{id}")
+	private String updateDealerSubmit(@PathVariable (value = "id") long id, 
+			@RequestParam("alamat") String alamat, @RequestParam("telp") String telp) {
+		DealerModel dealer = (DealerModel) dealerService.getDealerDetailById(id).get();
+		if(dealer.equals(null)) {
+			
+			return "error";
 		}
-		return "error";
+		dealer.setAlamat(alamat);
+		dealer.setNoTelp(telp);
+		dealerService.updateDealer(dealer, id);
+		return "update";
 }
-	@RequestMapping(value = "/dealer/view/all", method = RequestMethod.GET)
-	private String viewAllDealer(Model model) { 
-		DealerDb dealerRepo = dealerService.viewAllDealer();
-		List<DealerModel> listDealer = dealerRepo.findAll();
-		model.addAttribute("listDealer",listDealer);
-		
-		return "view-all";
-}
+	@GetMapping
+	private List<DealerModel> viewAllDealer(Model model) { 
+
+		return dealerService.viewAllDealer();
+
+	}	
+	
+	@Autowired
+	RestTemplate restTemplate;
+	
+		@Bean
+		public RestTemplate rest() {
+			return new RestTemplate();
+		}
+		@GetMapping(value = "/status/{dealerId}")
+		private String getStatus(@PathVariable ("dealerId") long dealerId) throws Exception {
+			String path = Setting.dealerUrl + "/dealer?id=" + dealerId;
+			return restTemplate.getForEntity(path, String.class).getBody();	
+			}
+		@GetMapping(value = "/full/{dealerId}")
+		private DealerDetail postStatus(@PathVariable ("dealerId") long dealerId) throws Exception {
+			String path = Setting.dealerUrl + "/dealer";
+			DealerModel dealer = dealerService.getDealerDetailById(dealerId).get();
+			DealerDetail detail = restTemplate.postForObject(path, dealer, DealerDetail.class);
+			return detail;
+			}
 }

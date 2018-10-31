@@ -1,9 +1,10 @@
-package com.apap.tutorial5.service;
+package com.apap.tutorial7.service;
 
+import java.util.List;
 import java.util.Optional;
 
-import com.apap.tutorial5.model.DealerModel;
-import com.apap.tutorial5.repository.DealerDb;
+import com.apap.tutorial7.model.DealerModel;
+import com.apap.tutorial7.repository.DealerDb;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,8 +23,8 @@ public class DealerServiceImpl implements DealerService{
 		
 	}
 	@Override
-	public void addDealer(DealerModel dealer) {
-		dealerDb.save(dealer);
+	public DealerModel addDealer(DealerModel dealer) {
+		return dealerDb.save(dealer);
 	}
 	@Override
 	public void deleteDealer(DealerModel dealer) {
@@ -32,16 +33,16 @@ public class DealerServiceImpl implements DealerService{
 		
 }
 	@Override
-	public void updateDealer(long id, Optional<DealerModel> newDealer) {
-		DealerModel update = dealerDb.getOne(id);
-		update.setAlamat(newDealer.get().getAlamat());
-		update.setNoTelp(newDealer.get().getNoTelp());
-		dealerDb.save(update);
-	}
+	 public void updateDealer(DealerModel updateDealer, Long dealerId) {
+		  DealerModel dataLama = dealerDb.findById(dealerId).get();
+		  dataLama.setAlamat(updateDealer.getAlamat());
+		  dataLama.setNoTelp(updateDealer.getNoTelp());
+		  dealerDb.save(dataLama);
+		 }
 	
 	@Override
-	public DealerDb viewAllDealer() {
-		return dealerDb;
+	public List<DealerModel> viewAllDealer() {
+		return dealerDb.findAll();
 }
 
 }
